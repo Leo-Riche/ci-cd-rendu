@@ -134,7 +134,6 @@ jobs:
           console.log("✅ Coverage threshold passed");
           '
   
-  ---
 
   # 5. Construction du projet (sur le client, selon le main)
   build:
