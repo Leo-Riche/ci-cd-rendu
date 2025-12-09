@@ -1,10 +1,13 @@
-name: CI (Integration)
-
+name: CI-CD
 on:
   pull_request:
     branches: [main]
+    paths:
+      - "packages/server/**"
+      - ".github/workflows/ci.yml"
   push:
-    branches: [main]
+    tags:
+      - "v*.*.*"
 
 jobs:
   install:
@@ -15,6 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
+
       - name: Install dependencies
         run: |
           npm ci --prefix packages/server
@@ -26,8 +30,37 @@ jobs:
             packages/server/node_modules
             packages/client/node_modules
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
+gmz
+restore-keys: |
+            ${{ runner.os }}-node_modules-
+  test:
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  # 2. Tests Unitaires & Coverage
+      - name: Set up Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/server/node_modules
+            packages/client/node_modules
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+
+      - name: Run tests (Server)
+        # Exécution des tests sur packages/server (approche main)
+        run: npm run test --prefix packages/server
+
+
+  # 3. Exécution des tests unitaires et génération de la couverture
   test-unit:
     name: Run Unit Tests
     runs-on: ubuntu-latest
@@ -44,7 +77,10 @@ jobs:
             packages/server/node_modules
             packages/client/node_modules
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
-      
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+            
+      # Adapter cette commande si le test unitaire se fait dans un sous-dossier spécifique.
       - run: npm run test:coverage --prefix packages/server
       
       - uses: actions/upload-artifact@v4
@@ -53,9 +89,9 @@ jobs:
           path: ./packages/server/coverage
           retention-days: 1
 
-  # 3. Vérification du taux de couverture (PR uniquement)
-  coverage-check:
-    name: Coverage Check
+  # 4. Vérification du taux de couverture (uniquement sur les Pull Requests)
+  coverage:
+    name: Coverage check (PR only)
     needs: test-unit
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -102,7 +138,7 @@ jobs:
           tags: todo-test:latest
           outputs: type=docker,dest=/tmp/image.tar
       
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability   scanner
         uses: aquasecurity/trivy-action@master
         with:
           input: /tmp/image.tar
