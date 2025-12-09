@@ -101,8 +101,6 @@ jobs:
           path: ./coverage
           retention-days: 1
 
-  ---
-
   # 4. Vérification du taux de couverture (uniquement sur les Pull Requests)
   coverage:
     name: Coverage check (PR only)
