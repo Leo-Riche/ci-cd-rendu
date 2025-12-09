@@ -2,10 +2,10 @@
 FROM node:18-alpine AS dependencies
 WORKDIR /app
 
-# Copier seulement les fichiers de dépendances
-COPY package*.json ./
+# Copier le package.json du serveur
+COPY packages/server/package*.json ./
 
-# Installer TOUTES les dépendances (dev + prod) pour le build
+# Installer les dépendances
 RUN npm ci
 
 # Stage 2: Build
@@ -15,8 +15,8 @@ WORKDIR /app
 # Copier les dépendances depuis le stage précédent
 COPY --from=dependencies /app/node_modules ./node_modules
 
-# Copier le code source
-COPY . .
+# Copier le code source du serveur
+COPY packages/server . .
 
 # Si vous avez un build step (TypeScript, etc.)
 # RUN npm run build
@@ -29,8 +29,8 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Copier seulement package*.json
-COPY package*.json ./
+# Copier seulement package*.json du serveur
+COPY packages/server/package*.json ./
 
 # Installer SEULEMENT les dépendances de production
 RUN npm ci --only=production && \
