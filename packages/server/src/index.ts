@@ -29,6 +29,14 @@ app.delete('/api/todos/:id', async (req, res) => {
   res.json(result);
 });
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+app.get('/fail', (req, res) => {
+  throw new Error("Ceci est une erreur de test pour Sentry !");
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
