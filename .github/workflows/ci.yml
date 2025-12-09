@@ -188,23 +188,4 @@ jobs:
         run: npm audit --audit-level=high --prefix packages/client
         continue-on-error: true
 
-  notify: 
-    runs-on: ubuntu-latest
-    needs: [test, build, security-scan-npm]
-    if: always()
-    env: 
-      REPO: ${{ github.repository }}
-      REF: ${{ github.ref_name }}
-      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-    steps:
-      name: Send success notification to Discord
-        if: ${{ success() && secrets.DISCORD_WEBHOOK != '' }}
-        run: |
-          payload=$(jq -n --arg txt "✅ Pipeline succeeded for ${REPO} — ${REF}\nRun: ${RUN_URL}" '{content:$txt}')
-          curl -s -H "Content-Type: application/json" -X POST -d "$payload" "$WEBHOOK"
-      - name: Send failure notification to Discord
-        if: ${{ failure() && secrets.DISCORD_WEBHOOK != '' }}
-        run: |
-          payload=$(jq -n --arg txt "❌ Pipeline FAILED for ${REPO} — ${REF}\nRun: ${RUN_URL}" '{content:$txt}')
-          curl -s -H "Content-Type: application/json" -X POST -d "$payload" "$WEBHOOK"
+ 
