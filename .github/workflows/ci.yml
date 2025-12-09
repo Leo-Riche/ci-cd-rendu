@@ -183,6 +183,7 @@ jobs:
   notify:
     needs: [test, build, security-scan-npm]
     runs-on: ubuntu-latest
+    if: always()
     env:
       REPO: ${{ github.repository }}
       REF: ${{ github.ref_name }}
@@ -190,7 +191,7 @@ jobs:
       WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
     steps:
       - name: Send Success Notification
-        if: ${{ success() && env.WEBHOOK != '' }}
+        if: ${{ job.status == 'success' && env.WEBHOOK != '' }}
         uses: rjstone/discord-webhook-notify@v2
         with:
           webhookUrl: ${{ env.WEBHOOK }}
@@ -198,7 +199,7 @@ jobs:
           details: "✅ BUILD SUCCESSFUL - All checks passed."
 
       - name: Send Failure Notification
-        if: ${{ failure() && env.WEBHOOK != '' }}
+        if: ${{ job.status == 'failure' && env.WEBHOOK != '' }}
         uses: rjstone/discord-webhook-notify@v2
         with:
           webhookUrl: ${{ env.WEBHOOK }}
