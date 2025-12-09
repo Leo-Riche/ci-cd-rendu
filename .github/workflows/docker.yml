@@ -91,7 +91,7 @@ jobs:
           name: docker-image-artifact
 
       - name: Load Docker image
-        run:|
+        run: |
           docker load --input image.tar
           docker images
 
