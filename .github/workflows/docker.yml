@@ -11,7 +11,8 @@ on:
       - "v*.*.*"
 
 env:
-  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/todo-api
+  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME || 'todo-api' }}/todo-api
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME || 'todo-api' }}
 
 jobs:
   build-docker:
@@ -50,7 +51,7 @@ jobs:
           context: .
           file: ./packages/server/Dockerfile
           push: false
-          tags: ${{ env.DOCKER_IMAGE }}:pr-${{ github.event.pull_request.number }}
+          tags: todo-api:pr-${{ github.event.pull_request.number }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           outputs: type=docker,dest=/tmp/image.tar
@@ -88,25 +89,25 @@ jobs:
       - name: Download Docker image artifact
         uses: actions/download-artifact@v4
         with:
-          name: docker-image-artifact
+          name: docker-image
+          path: /tmp
 
       - name: Load Docker image
         run: |
-          docker load --input image.tar
+          docker load --input /tmp/image.tar
           docker images
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          input: "image.tar"
+          input: "/tmp/image.tar"
           format: "sarif"
           output: "trivy-results.sarif"
           severity: "CRITICAL,HIGH"
 
       - name: Check for critical vulnerabilities
         run: |
-          docker load --input image.tar
-          TRIVY_EXIT_CODE=$(docker run --rm -v image.tar:/image.tar aquasec/trivy:latest image --input /image.tar --severity CRITICAL --exit-code 1 2>&1 || echo "1")
+          TRIVY_EXIT_CODE=$(docker run --rm -v /tmp/image.tar:/image.tar aquasec/trivy:latest image --input /image.tar --severity CRITICAL --exit-code 1 2>&1 || echo "1")
           if [ "$TRIVY_EXIT_CODE" = "1" ]; then
             echo "❌ CRITICAL vulnerabilities found! Build failed."
             exit 1
