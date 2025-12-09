@@ -110,7 +110,7 @@ jobs:
           console.log("✅ Coverage threshold passed:", pct, "%");
           '
 
-  # 4. Scan de sécurité NPM
+  # 5. Scan de sécurité NPM
   security-scan-npm:
     runs-on: ubuntu-latest
     needs: install
@@ -122,7 +122,7 @@ jobs:
       - run: npm audit --audit-level=high --prefix packages/server || true # Le "|| true" permet de ne pas bloquer si des failles mineures existent
       - run: npm audit --audit-level=high --prefix packages/client || true
 
-  # 5. Build Docker TEST & Scan Trivy (Sans Push)
+  # 6. Build Docker TEST & Scan Trivy (Sans Push)
   docker-security-check:
     runs-on: ubuntu-latest
     steps:
@@ -144,3 +144,25 @@ jobs:
           exit-code: "1"
           ignore-unfixed: true
           severity: "CRITICAL,HIGH"
+
+# 7. Notifications Discord success / failure
+  notify:
+  needs: ci
+  runs-on: ubuntu-latest
+  environment: production
+  steps:
+    - name: Notify Success
+      if: ${{ success() && secrets.DISCORD_WEBHOOK_URL != '' }}
+      uses: rjstone/discord-webhook-notify@v2
+      with:
+        webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        severity: info
+        details: "✅ BUILD SUCCESSFUL - All checks passed."
+
+    - name: Notify Failure
+      if: ${{ failure() && secrets.DISCORD_WEBHOOK_URL != '' }}
+      uses: rjstone/discord-webhook-notify@v2
+      with:
+        webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        severity: error
+        details: "❌ BUILD FAILED - Please check the CI logs."
