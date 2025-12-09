@@ -51,7 +51,7 @@ jobs:
           context: .
           file: ./packages/server/Dockerfile
           push: false
-          tags: todo-api:pr-${{ github.event.pull_request.number }}
+          tags: ${{ env.DOCKER_IMAGE }}:pr-${{ github.event.pull_request.number }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           outputs: type=docker,dest=/tmp/image.tar
