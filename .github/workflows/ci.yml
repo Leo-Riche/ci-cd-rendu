@@ -181,22 +181,26 @@ jobs:
 
 # 7. Notifications Discord success / failure
   notify:
-  needs: ci
-  runs-on: ubuntu-latest
-  environment: production
-  steps:
-    - name: Send Success Notification
-      if: success() && env.WEBHOOK != ''
-      uses: rjstone/discord-webhook-notify@v2
-      with:
-        webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        severity: info
-        details: "✅ BUILD SUCCESSFUL - All checks passed."
+    needs: [test, build, security-scan-npm]
+    runs-on: ubuntu-latest
+    env:
+      REPO: ${{ github.repository }}
+      REF: ${{ github.ref_name }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+    steps:
+      - name: Send Success Notification
+        if: ${{ success() && env.WEBHOOK != '' }}
+        uses: rjstone/discord-webhook-notify@v2
+        with:
+          webhookUrl: ${{ env.WEBHOOK }}
+          severity: info
+          details: "✅ BUILD SUCCESSFUL - All checks passed."
 
-    - name: Send Failure Notification
-      if: failure() && env.WEBHOOK != ''
-      uses: rjstone/discord-webhook-notify@v2
-      with:
-        webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        severity: error
-        details: "❌ BUILD FAILED - Please check the CI logs."
+      - name: Send Failure Notification
+        if: ${{ failure() && env.WEBHOOK != '' }}
+        uses: rjstone/discord-webhook-notify@v2
+        with:
+          webhookUrl: ${{ env.WEBHOOK }}
+          severity: error
+          details: "❌ BUILD FAILED - Please check the CI logs."
