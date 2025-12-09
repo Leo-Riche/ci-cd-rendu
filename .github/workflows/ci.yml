@@ -208,16 +208,29 @@ jobs:
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
     steps:
-      - name: Send success notification to Discord
-        if: ${{ success() && secrets.DISCORD_WEBHOOK_URL != '' }}
-        run: |
-          MSG="✅ Pipeline succeeded for ${REPO} — ${REF}\n${RUN_URL}"
-          PAYLOAD=$(printf '{"content":"%s"}' "$MSG")
-          curl -s -H "Content-Type: application/json" -X POST -d "$PAYLOAD" "$WEBHOOK"
+    - name: Stop if no webhook is set
+      if: env.WEBHOOK == ''
+      run: echo "No Discord webhook configured — skipping"
 
-      - name: Send failure notification to Discord
-        if: ${{ failure() && secrets.DISCORD_WEBHOOK_URL != '' }}
-        run: |
-          MSG="❌ Pipeline FAILED for ${REPO} — ${REF}\n${RUN_URL}"
-          PAYLOAD=$(printf '{"content":"%s"}' "$MSG")
-          curl -s -H "Content-Type: application/json" -X POST -d "$PAYLOAD" "$WEBHOOK"
+    - name: Send Discord notification
+      if: env.WEBHOOK != ''
+      run: |
+        if [ "${RESULT}" = "success" ]; then
+          STATUS="🟢 **SUCCESS**"
+          COLOR=3066993
+        else
+          STATUS="🔴 **FAILURE**"
+          COLOR=15158332
+        fi
+
+        curl -s -H "Content-Type: application/json" -X POST \
+          -d "{
+            \"embeds\": [
+              {
+                \"title\": \"$STATUS\",
+                \"description\": \"Repository: **${REPO}**\nBranch/Tag: **${REF}**\n[Voir le run GitHub Actions](${RUN})\",
+                \"color\": ${COLOR}
+              }
+            ]
+          }" \
+          "${WEBHOOK}"
