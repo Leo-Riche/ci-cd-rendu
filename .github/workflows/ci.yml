@@ -26,7 +26,7 @@ jobs:
           npm install --prefix packages/server
           npm install --prefix packages/client
 
-      - name: Cache node_modules
+      - name: Cache node_modules (Server & Client)
         uses: actions/cache@v4
         with:
           path: |
@@ -53,13 +53,92 @@ jobs:
           path: |
             packages/server/node_modules
             packages/client/node_modules
+
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node_modules-
 
-      - name: Run tests
+      - name: Run tests (Server)
+        # Exécution des tests sur packages/server (approche main)
         run: npm run test --prefix packages/server
 
+
+  # 3. Exécution des tests unitaires et génération de la couverture
+  test-unit:
+    name: Run Unit Tests & Coverage
+    runs-on: ubuntu-latest
+    # Dépend de 'install' pour assurer que les dépendances sont là.
+    # Note : Le `test-unit` d'origine utilisait Node 18, l'adapter selon votre besoin réel.
+    needs: install 
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          # On garde 22.x pour la cohérence, mais vous pouvez le changer à 18 si nécessaire.
+          node-version: "22.x" 
+
+      # On pourrait restaurer le cache ici pour éviter de refaire l'installation, 
+      # ou utiliser npm ci si l'environnement doit être propre ou si le job 'install' n'est pas fiable.
+      # Si on utilise 'needs: install', le cache est préférable.
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/server/node_modules
+            packages/client/node_modules
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+            
+      # Adapter cette commande si le test unitaire se fait dans un sous-dossier spécifique.
+      - run: npm run test:coverage 
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-artifact
+          path: ./coverage
+          retention-days: 1
+
+  ---
+
+  # 4. Vérification du taux de couverture (uniquement sur les Pull Requests)
+  coverage:
+    name: Coverage check (PR only)
+    needs: test-unit
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-artifact
+          path: ./pr-coverage
+      
+      - name: Check coverage >= 80%
+        # Le script Node pour vérifier le seuil est conservé
+        run: |
+          node -e '
+          const fs = require("fs");
+          const path = "./pr-coverage/coverage-summary.json";
+          if (!fs.existsSync(path)) {
+            console.error("❌ coverage-summary.json not found");
+            process.exit(1);
+          }
+          const data = JSON.parse(fs.readFileSync(path, "utf8"));
+          const pct = data.total.lines.pct;
+          const threshold = 80;
+          console.log("Coverage:", pct, "%");
+          if (pct < threshold) {
+            console.error(`❌ Coverage ${pct}% is below ${threshold}%`);
+            process.exit(1);
+          }
+          console.log("✅ Coverage threshold passed");
+          '
+  
+  ---
+
+  # 5. Construction du projet (sur le client, selon le main)
   build:
     runs-on: ubuntu-latest
     needs: install
@@ -67,7 +146,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js 22.x
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
@@ -82,7 +161,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node_modules-
 
-      - name: Build project
+      - name: Build project (Client)
+        # Exécution du build sur packages/client (approche main)
         run: npm run build --prefix packages/client
 
       - name: Upload artifacts
