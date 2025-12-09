@@ -134,13 +134,13 @@ jobs:
           file: ./packages/server/Dockerfile
           push: false
           tags: todo-test:latest
-          outputs: type=docker,dest=/tmp/image.tar
+          load: true
 
-      - name: Run Trivy vulnerability   scanner
+      - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          input: /tmp/image.tar
+          image-ref: todo-test:latest
           format: "table"
-          exit-code: "1" # Fait échouer la CI si failles critiques
+          exit-code: "1"
           ignore-unfixed: true
           severity: "CRITICAL,HIGH"
