@@ -185,16 +185,16 @@ jobs:
   runs-on: ubuntu-latest
   environment: production
   steps:
-    - name: Notify Success
-      if: ${{ success() && secrets.DISCORD_WEBHOOK_URL != '' }}
+    - name: Send Success Notification
+      if: success() && env.WEBHOOK != ''
       uses: rjstone/discord-webhook-notify@v2
       with:
         webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
         severity: info
         details: "✅ BUILD SUCCESSFUL - All checks passed."
 
-    - name: Notify Failure
-      if: ${{ failure() && secrets.DISCORD_WEBHOOK_URL != '' }}
+    - name: Send Failure Notification
+      if: failure() && env.WEBHOOK != ''
       uses: rjstone/discord-webhook-notify@v2
       with:
         webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
