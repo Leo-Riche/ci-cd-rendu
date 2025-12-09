@@ -1,0 +1,24 @@
+{
+  "name": "ci-cd-rendu",
+  "version": "1.0.0",
+  "main": "commitlint.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Leo-Riche/ci-cd-rendu.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Leo-Riche/ci-cd-rendu/issues"
+  },
+  "homepage": "https://github.com/Leo-Riche/ci-cd-rendu#readme",
+  "description": "",
+  "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0"
+  }
+}
