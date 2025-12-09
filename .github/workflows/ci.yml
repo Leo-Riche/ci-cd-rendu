@@ -209,12 +209,31 @@ jobs:
       WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
     steps:
       - name: Send success notification to Discord
-        if: success()
+        if: ${{ success() }}
         run: |
-          payload=$(jq -n --arg txt "✅ Pipeline succeeded for ${REPO} — ${REF}\nRun: ${RUN_URL}" '{content:$txt}')
-          curl -s -H "Content-Type: application/json" -X POST -d "$payload" "$WEBHOOK"
+          WEBHOOK_URL="${{ secrets.DISCORD_WEBHOOK_URL }}"
+          TITLE="✅ Déploiement réussi (Success)"
+          COLOR=65280 # Vert (Green)
+          MESSAGE="Pipeline **Success** pour le dépôt **${REPO}** sur la branche/tag **${REF}**."
+          
+          # Construction du payload JSON sans jq
+          PAYLOAD=$(printf '{"embeds": [{"title": "%s", "description": "%s\n[Voir le Run CI/CD](%s)", "color": %d}]}' "$TITLE" "$MESSAGE" "$RUN_URL" $COLOR)
+          
+          curl -s -X POST "$WEBHOOK_URL" \
+          -H "Content-Type: application/json" \
+          --data "$PAYLOAD"
+
       - name: Send failure notification to Discord
-        if: failure()
+        if: ${{ failure() }}
         run: |
-          payload=$(jq -n --arg txt "❌ Pipeline FAILED for ${REPO} — ${REF}\nRun: ${RUN_URL}" '{content:$txt}')
-          curl -s -H "Content-Type: application/json" -X POST -d "$payload" "$WEBHOOK"
+          WEBHOOK_URL="${{ secrets.DISCORD_WEBHOOK_URL }}"
+          TITLE="❌ Pipeline Échouée (Failure)"
+          COLOR=16711680 # Rouge (Red)
+          MESSAGE="Pipeline **FAILED** pour le dépôt **${REPO}** sur la branche/tag **${REF}**."
+          
+          # Construction du payload JSON sans jq
+          PAYLOAD=$(printf '{"embeds": [{"title": "%s", "description": "%s\n[Voir le Run CI/CD](%s)", "color": %d}]}' "$TITLE" "$MESSAGE" "$RUN_URL" $COLOR)
+          
+          curl -s -X POST "$WEBHOOK_URL" \
+          -H "Content-Type: application/json" \
+          --data "$PAYLOAD"
