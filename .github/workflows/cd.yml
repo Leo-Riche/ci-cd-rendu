@@ -1,0 +1,69 @@
+name: CD Pipeline (Deploy)
+
+# Se déclenche UNIQUEMENT sur les tags (v1.0.0, etc.)
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/todo-api # Assure-toi que ça matche ton nom sur DockerHub
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Génération automatique des tags (latest + v1.0.0)
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=latest
+
+      # Construction et Push vers Docker Hub
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./packages/server/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy-backend:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deployment
+        # C'est ici qu'on utilise ton secret !
+        run: |
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+          echo "✅ Déploiement déclenché sur Render via Webhook"
+
+  smoke-test:
+    needs: deploy-backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Render to build (60s)
+        run: sleep 60
+
+      - name: Check Health Route
+        # Remplace par ta VRAIE url Render
+        run: |
+          curl --fail https://todo-api-u610.onrender.com/health || exit 1
+          echo "✅ Smoke test passed! API is up."
