@@ -209,12 +209,12 @@ jobs:
       WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
     steps:
       - name: Send success notification to Discord
-        if: ${{secrets.DISCORD_WEBHOOK_URL  }} != '' && success()
+        if: success()
         run: |
           payload=$(jq -n --arg txt "✅ Pipeline succeeded for ${REPO} — ${REF}\nRun: ${RUN_URL}" '{content:$txt}')
           curl -s -H "Content-Type: application/json" -X POST -d "$payload" "$WEBHOOK"
       - name: Send failure notification to Discord
-        if: ${{secrets.DISCORD_WEBHOOK_URL  }} != '' && failure()
+        if: failure()
         run: |
           payload=$(jq -n --arg txt "❌ Pipeline FAILED for ${REPO} — ${REF}\nRun: ${RUN_URL}" '{content:$txt}')
           curl -s -H "Content-Type: application/json" -X POST -d "$payload" "$WEBHOOK"
