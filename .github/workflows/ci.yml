@@ -57,7 +57,6 @@ jobs:
         # Exécution des tests sur packages/server (approche main)
         run: npm run test --prefix packages/server
 
-  ---
 
   # 3. Exécution des tests unitaires et génération de la couverture
   test-unit:
