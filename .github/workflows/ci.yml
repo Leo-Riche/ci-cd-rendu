@@ -3,7 +3,6 @@ on: [push]
 jobs:
   install:
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - uses: actions/checkout@v4
 
@@ -112,4 +111,3 @@ jobs:
       - name: Security audit - Client
         run: npm audit --audit-level=high --prefix packages/client
         continue-on-error: true
-
