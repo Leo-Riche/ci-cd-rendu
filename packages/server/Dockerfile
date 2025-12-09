@@ -12,14 +12,15 @@ RUN npm ci
 FROM node:18-alpine AS builder
 WORKDIR /app/packages/server
 
-# Copier les dépendances depuis le stage précédent
+# Récupérer les node_modules installés à l'étape d'avant
 COPY --from=dependencies /app/packages/server/node_modules ./node_modules
 
-# Copier le code source du serveur
+# --- CORRECTION ICI ---
+# Au lieu de "COPY . .", on copie précisément le dossier server
 COPY packages/server/ .
 
-# Si vous avez un build step (TypeScript, etc.)
-# RUN npm run build
+# Maintenant les fichiers sont au bon endroit, on peut build
+RUN npm run build
 
 # Stage 3: Production
 FROM node:18-alpine AS production
@@ -53,4 +54,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Démarrer l'application
-CMD ["node", "index.js"]
+CMD ["node", "dist/index.js"]
