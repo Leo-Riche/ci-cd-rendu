@@ -211,11 +211,11 @@ jobs:
       - name: Send success notification
         if: success() && env.WEBHOOK != ''
         run: |
-          curl -s -H "Content-Type: application/json" -X POST "${WEBHOOK}" \
+          curl -s -H "Content-Type: application/json" -X POST "${secrets.DISCORD_WEBHOOK_URL}" \
             -d "{"embeds":[{"title":"✅ Pipeline réussie","description":"Repository: Pipeline réussie"}]}"
 
       - name: Send failure notification
         if: failure() && env.WEBHOOK != ''
         run: |
-          curl -s -H "Content-Type: application/json" -X POST "${WEBHOOK}" \
+          curl -s -H "Content-Type: application/json" -X POST "${secrets.DISCORD_WEBHOOK_URL}" \
             -d "{"embeds":[{"title":"❌ Pipeline échouée","description":"Repository: Pipeline échouée"}]}"
