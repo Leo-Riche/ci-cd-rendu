@@ -1,6 +1,6 @@
 # Stage 1: Dependencies
 FROM node:18-alpine AS dependencies
-WORKDIR /app
+WORKDIR /app/packages/server
 
 # Copier le package.json du serveur
 COPY packages/server/package*.json ./
@@ -10,20 +10,20 @@ RUN npm ci
 
 # Stage 2: Build
 FROM node:18-alpine AS builder
-WORKDIR /app
+WORKDIR /app/packages/server
 
 # Copier les dépendances depuis le stage précédent
-COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=dependencies /app/packages/server/node_modules ./node_modules
 
 # Copier le code source du serveur
-COPY packages/server . .
+COPY packages/server/ .
 
 # Si vous avez un build step (TypeScript, etc.)
 # RUN npm run build
 
 # Stage 3: Production
 FROM node:18-alpine AS production
-WORKDIR /app
+WORKDIR /app/packages/server
 
 # Créer un utilisateur non-root pour la sécurité
 RUN addgroup -g 1001 -S nodejs && \
@@ -37,10 +37,10 @@ RUN npm ci --only=production && \
     npm cache clean --force
 
 # Copier le code depuis le builder
-COPY --from=builder /app .
+COPY --from=builder /app/packages/server .
 
 # Changer le propriétaire des fichiers
-RUN chown -R nodejs:nodejs /app
+RUN chown -R nodejs:nodejs /app/packages/server
 
 # Utiliser l'utilisateur non-root
 USER nodejs
