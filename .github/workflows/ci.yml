@@ -209,13 +209,13 @@ jobs:
       WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
     steps:
       - name: Send success notification
-        if: success() && env.WEBHOOK != ''
+        if: success()
         run: |
           curl -s -H "Content-Type: application/json" -X POST "${secrets.DISCORD_WEBHOOK_URL}" \
             -d "{"embeds":[{"title":"✅ Pipeline réussie","description":"Repository: Pipeline réussie"}]}"
 
       - name: Send failure notification
-        if: failure() && env.WEBHOOK != ''
+        if: failure()
         run: |
           curl -s -H "Content-Type: application/json" -X POST "${secrets.DISCORD_WEBHOOK_URL}" \
             -d "{"embeds":[{"title":"❌ Pipeline échouée","description":"Repository: Pipeline échouée"}]}"
