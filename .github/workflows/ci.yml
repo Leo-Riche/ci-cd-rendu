@@ -11,7 +11,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
-          node-version: "22.x"
 
       - name: Install dependencies
         run: |
@@ -38,14 +37,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
-          node-version: "22.x"
 
       - name: Restore node_modules cache
         uses: actions/cache@v4
         with:
-          path: |
-            packages/server/node_modules
-            packages/client/node_modules
           path: |
             packages/server/node_modules
             packages/client/node_modules
