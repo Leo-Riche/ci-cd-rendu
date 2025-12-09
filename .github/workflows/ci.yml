@@ -30,8 +30,7 @@ jobs:
             packages/server/node_modules
             packages/client/node_modules
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
-gmz
-restore-keys: |
+          restore-keys: |
             ${{ runner.os }}-node_modules-
   test:
     runs-on: ubuntu-latest
@@ -59,7 +58,6 @@ restore-keys: |
         # Exécution des tests sur packages/server (approche main)
         run: npm run test --prefix packages/server
 
-
   # 3. Exécution des tests unitaires et génération de la couverture
   test-unit:
     name: Run Unit Tests
@@ -79,10 +77,10 @@ restore-keys: |
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node_modules-
-            
+
       # Adapter cette commande si le test unitaire se fait dans un sous-dossier spécifique.
       - run: npm run test:coverage --prefix packages/server
-      
+
       - uses: actions/upload-artifact@v4
         with:
           name: coverage-artifact
@@ -120,7 +118,7 @@ restore-keys: |
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-            node-version: "22.x"
+          node-version: "22.x"
       - run: npm audit --audit-level=high --prefix packages/server || true # Le "|| true" permet de ne pas bloquer si des failles mineures existent
       - run: npm audit --audit-level=high --prefix packages/client || true
 
@@ -137,12 +135,12 @@ restore-keys: |
           push: false
           tags: todo-test:latest
           outputs: type=docker,dest=/tmp/image.tar
-      
+
       - name: Run Trivy vulnerability   scanner
         uses: aquasecurity/trivy-action@master
         with:
           input: /tmp/image.tar
-          format: 'table'
-          exit-code: '1' # Fait échouer la CI si failles critiques
+          format: "table"
+          exit-code: "1" # Fait échouer la CI si failles critiques
           ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
+          severity: "CRITICAL,HIGH"
