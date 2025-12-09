@@ -83,12 +83,12 @@ jobs:
             ${{ runner.os }}-node_modules-
             
       # Adapter cette commande si le test unitaire se fait dans un sous-dossier spécifique.
-      - run: npm run test:coverage 
+      - run: npm run test:coverage --prefix packages/server
       
       - uses: actions/upload-artifact@v4
         with:
           name: coverage-artifact
-          path: ./coverage
+          path: ./packages/server/coverage
           retention-days: 1
 
   # 4. Vérification du taux de couverture (uniquement sur les Pull Requests)
