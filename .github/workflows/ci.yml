@@ -198,39 +198,24 @@ jobs:
         run: npm audit --audit-level=high --prefix packages/client
         continue-on-error: true
 
-  notify: 
+  notify:
     runs-on: ubuntu-latest
     needs: [test, build, security-scan-npm]
     if: always()
-    env: 
+    env:
       REPO: ${{ github.repository }}
       REF: ${{ github.ref_name }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
     steps:
-    - name: Stop if no webhook is set
-      if: env.WEBHOOK == ''
-      run: echo "No Discord webhook configured — skipping"
+      - name: Send success notification
+        if: success() && env.WEBHOOK != ''
+        run: |
+          curl -s -H "Content-Type: application/json" -X POST "${WEBHOOK}" \
+            -d "{"embeds":[{"title":"✅ Pipeline réussie","description":"Repository: Pipeline réussie"}]}"
 
-    - name: Send Discord notification
-      if: env.WEBHOOK != ''
-      run: |
-        if [ "${RESULT}" = "success" ]; then
-          STATUS="🟢 **SUCCESS**"
-          COLOR=3066993
-        else
-          STATUS="🔴 **FAILURE**"
-          COLOR=15158332
-        fi
-
-        curl -s -H "Content-Type: application/json" -X POST \
-          -d "{
-            \"embeds\": [
-              {
-                \"title\": \"$STATUS\",
-                \"description\": \"Repository: **${REPO}**\nBranch/Tag: **${REF}**\n[Voir le run GitHub Actions](${RUN})\",
-                \"color\": ${COLOR}
-              }
-            ]
-          }" \
-          "${WEBHOOK}"
+      - name: Send failure notification
+        if: failure() && env.WEBHOOK != ''
+        run: |
+          curl -s -H "Content-Type: application/json" -X POST "${WEBHOOK}" \
+            -d "{"embeds":[{"title":"❌ Pipeline échouée","description":"Repository: Pipeline échouée"}]}"
