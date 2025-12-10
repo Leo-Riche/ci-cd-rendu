@@ -184,6 +184,7 @@ jobs:
     needs: [test, build, security-scan-npm]
     runs-on: ubuntu-latest
     if: always()
+    environment: production
     env:
       REPO: ${{ github.repository }}
       REF: ${{ github.ref_name }}
