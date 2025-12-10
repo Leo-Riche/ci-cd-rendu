@@ -190,13 +190,20 @@ jobs:
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
     steps:
+      - name: Debug
+        run: |
+          echo "Webhook configured: ${{ env.WEBHOOK != '' }}"
+          echo "Test result: ${{ needs.test.result }}"
+          echo "Build result: ${{ needs.build.result }}"
+          echo "Security result: ${{ needs.security-scan-npm.result }}"
+
       - name: Send Success Notification
         if: ${{ env.WEBHOOK != '' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
         run: |
           curl -H "Content-Type: application/json" -X POST -d '{
             "embeds": [{
               "title": "✅ Build Successful",
-              "description": "All checks passed",
+              "description": "All checks passed"
             }]
           }' ${{ env.WEBHOOK }}
 
@@ -206,6 +213,6 @@ jobs:
           curl -H "Content-Type: application/json" -X POST -d '{
             "embeds": [{
               "title": "❌ Build Failed",
-              "description": "Please check the CI logs.",             
+              "description": "Please check the CI logs."            
             }]
           }' ${{ env.WEBHOOK }}
