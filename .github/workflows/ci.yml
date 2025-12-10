@@ -191,7 +191,7 @@ jobs:
       WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
     steps:
       - name: Send Success Notification
-        if: ${{ job.status == 'success' && env.WEBHOOK != '' }}
+        if: ${{ needs.test.result == 'success' && needs.build.result == 'success' && needs.security-scan-npm.result == 'success' && env.WEBHOOK != '' }}
         uses: rjstone/discord-webhook-notify@v2
         with:
           webhookUrl: ${{ env.WEBHOOK }}
@@ -199,7 +199,7 @@ jobs:
           details: "✅ BUILD SUCCESSFUL - All checks passed."
 
       - name: Send Failure Notification
-        if: ${{ job.status == 'failure' && env.WEBHOOK != '' }}
+        if: ${{ (needs.test.result == 'failure' || needs.build.result == 'failure' || needs.security-scan-npm.result == 'failure') && env.WEBHOOK != '' }}
         uses: rjstone/discord-webhook-notify@v2
         with:
           webhookUrl: ${{ env.WEBHOOK }}
