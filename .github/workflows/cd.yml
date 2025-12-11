@@ -48,6 +48,7 @@ jobs:
 
   deploy-backend:
     needs: build-and-push
+    environment: production
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render Deployment
@@ -58,6 +59,7 @@ jobs:
 
   smoke-test:
     needs: deploy-backend
+    environment: production
     runs-on: ubuntu-latest
     steps:
       - name: Wait for Render to build (60s)
