@@ -56,7 +56,7 @@ function App() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="flex items-center gap-3 mb-8">
             <CheckSquare className="text-blue-500" size={32} />
-            <h1 className="text-3xl font-bold text-gray-800">Todo List</h1>
+            <h1 className="text-3xl font-bold text-gray-800">New Todo List</h1>
           </div>
 
           <TodoForm onAdd={handleAdd} />
