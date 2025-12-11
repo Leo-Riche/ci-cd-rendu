@@ -91,7 +91,7 @@ jobs:
         working-directory: ./packages/client
 
   smoke-test:
-    needs: deploy-backend
+    needs: [deploy-backend, deploy-frontend]
     environment: production
     runs-on: ubuntu-latest
     steps:
@@ -103,3 +103,19 @@ jobs:
         run: |
           curl --fail https://todo-api-u610.onrender.com/health || exit 1
           echo "✅ Smoke test passed! API is up."
+
+      - name: Check Health Route
+        # Remplace par ta VRAIE url Render
+        run: |
+          SLEEP_DURATION=10
+          MAX_ATTEMPTS=12
+          ATTEMPT=1
+          until $(curl --silent --fail --location --output /dev/null "https://ci-cd-rendu.vercel.app"); do
+            if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+              echo "::error::Le frontend ne répond pas après $MAX_ATTEMPTS tentatives."
+              exit 1
+            fi
+            sleep $SLEEP_DURATION
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+          echo "Frontend online!"

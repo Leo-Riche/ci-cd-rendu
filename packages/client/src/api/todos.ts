@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3001/api/todos';
+const API_URL = 'https://todo-api-u610.onrender.com/api/todos';
 
 export interface Todo {
   id: string;
